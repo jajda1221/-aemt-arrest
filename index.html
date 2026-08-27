@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AEMT Arrest">
+<meta name="theme-color" content="#07111b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>AEMT Cardiac Arrest</title>
+<style>
+:root{--bg:#07111b;--panel:#0f1d29;--line:#263b4c;--text:#f7fafc;--muted:#aebdca;--green:#31b65a;--green2:#183d26;--yellow:#e8c92f;--yellow2:#463d14;--blue:#83c7ff;--red:#5a2228}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.wrap{max-width:760px;margin:auto;padding:12px}
+.header{position:sticky;top:0;z-index:10;background:rgba(7,17,27,.97);backdrop-filter:blur(12px);padding:8px 0 12px;border-bottom:1px solid var(--line)}
+h1{font-size:21px;margin:0}.subhead{font-size:12px;color:var(--muted);margin-top:4px}
+.clocks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.clockbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px}
+.label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.big{font-size:25px;font-weight:800;font-variant-numeric:tabular-nums}
+.topbuttons{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-top:8px}
+button{border:1px solid var(--line);border-radius:14px;background:#173149;color:#fff;min-height:60px;padding:10px;font-size:15px;font-weight:800;touch-action:manipulation}
+button:active{transform:scale(.985)}
+.start{background:#146237;border-color:#2a9d59}.reset{background:var(--red);border-color:#83323b}
+.section{margin-top:17px}.section-title{padding:10px 12px;border-radius:14px 14px 0 0;font-weight:900}
+.basic .section-title{background:var(--green);color:#06140a}.advanced .section-title{background:var(--yellow);color:#181400}
+.steps{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.step{display:grid;grid-template-columns:42px 1fr 67px;gap:9px;align-items:center;text-align:left;min-height:74px;padding:9px}
+.basic .step{background:var(--green2);border-color:#2e8150}.advanced .step{background:var(--yellow2);border-color:#8a7825}
+.num{height:38px;width:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px}
+.basic .num{background:var(--green);color:#06140a}.advanced .num{background:var(--yellow);color:#181400}
+.steptext{font-size:15px;line-height:1.18}.detail{display:block;font-size:12px;font-weight:500;color:#d7e0e7;margin-top:4px}
+.time{text-align:right;color:var(--blue);font-size:12px;font-variant-numeric:tabular-nums}.done{outline:2px solid var(--blue)}
+.repeat{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.repeat button{min-height:48px}
+.timer{margin-top:8px;padding:10px;border-radius:12px;background:#302b10;border:1px solid #8a7825;font-size:13px}
+.timer strong{color:#ffe970}
+.logbox{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:15px;overflow:hidden}
+.loghead{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid var(--line)}
+.loghead h2{font-size:16px;margin:0}.smallbtns{display:flex;gap:6px}.smallbtns button{min-height:36px;padding:6px 9px;font-size:12px}
+#log{list-style:none;margin:0;padding:0;max-height:38vh;overflow:auto}
+#log li{display:grid;grid-template-columns:74px 54px 1fr 28px;gap:6px;align-items:center;padding:9px;border-bottom:1px solid rgba(38,59,76,.7)}
+.et{font-weight:800;font-variant-numeric:tabular-nums}.el{color:var(--blue);font-size:11px;font-variant-numeric:tabular-nums}.ev{font-size:13px}.del{min-height:28px;padding:0;background:transparent;color:#ff9ca3}
+.empty{display:block!important;text-align:center;color:var(--muted);padding:18px!important}
+.offline{margin-top:10px;font-size:11px;color:#8fa1b0}.offline.ok{color:#8ce0af}
+.note{margin:16px 2px 25px;color:#8295a4;font-size:10px;line-height:1.4}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header">
+  <h1>AEMT Cardiac Arrest</h1>
+  <div class="subhead">Green + Yellow workflow • tap each item to timestamp</div>
+  <div class="clocks">
+    <div class="clockbox"><div class="label">Current Time</div><div id="clock" class="big">--:--:--</div></div>
+    <div class="clockbox"><div class="label">Elapsed</div><div id="elapsed" class="big">00:00</div></div>
+  </div>
+  <div class="topbuttons">
+    <button class="start" type="button" onclick="startTimer()">START TIMER</button>
+    <button class="reset" type="button" onclick="resetAll()">RESET</button>
+  </div>
+  <div id="offlineStatus" class="offline">Offline app ready after first Safari load.</div>
+</div>
+
+<section class="section basic">
+  <div class="section-title">GREEN — BASIC</div>
+  <div class="steps">
+    <button type="button" class="step" id="s1" onclick="stepTap(1,'Pulse check performed')"><span class="num">1</span><span class="steptext">Pulse Check</span><span class="time" id="t1">TAP</span></button>
+    <button type="button" class="step" id="s2" onclick="stepTap(2,'Chest compressions initiated immediately')"><span class="num">2</span><span class="steptext">Start chest compressions immediately</span><span class="time" id="t2">TAP</span></button>
+    <button type="button" class="step" id="s3" onclick="stepTap(3,'Defibrillator pads applied')"><span class="num">3</span><span class="steptext">Apply defibrillator pads ASAP</span><span class="time" id="t3">TAP</span></button>
+    <button type="button" class="step" id="s4" onclick="stepTap(4,'Defibrillation performed when indicated')"><span class="num">4</span><span class="steptext">Defibrillate when indicated<span class="detail">Do not wait for a full cycle of compressions before indicated defibrillation.</span></span><span class="time" id="t4">TAP</span></button>
+    <button type="button" class="step" id="s5" onclick="stepTap(5,'Airway management performed')"><span class="num">5</span><span class="steptext">Airway management<span class="detail">As appropriate and trained.</span></span><span class="time" id="t5">TAP</span></button>
+    <button type="button" class="step" id="s6" onclick="stepTap(6,'Rapid assessment performed')"><span class="num">6</span><span class="steptext">Rapid assessment</span><span class="time" id="t6">TAP</span></button>
+    <button type="button" class="step" id="s7" onclick="stepTap(7,'Paramedic intercept requested')"><span class="num">7</span><span class="steptext">Request paramedic intercept</span><span class="time" id="t7">TAP</span></button>
+  </div>
+</section>
+
+<section class="section advanced">
+  <div class="section-title">YELLOW — ADVANCED</div>
+  <div class="steps">
+    <button type="button" class="step" id="s8" onclick="stepTap(8,'Treatable causes considered: overdose/poisoning, hypothermia, hypoglycemia')"><span class="num">8</span><span class="steptext">Consider treatable causes<span class="detail">Overdose/poisoning • Hypothermia • Hypoglycemia</span></span><span class="time" id="t8">TAP</span></button>
+    <button type="button" class="step" id="s9" onclick="stepTap(9,'IV/IO access established')"><span class="num">9</span><span class="steptext">Establish IV / IO access</span><span class="time" id="t9">TAP</span></button>
+    <button type="button" class="step" id="s10" onclick="epiTap()"><span class="num">10</span><span class="steptext">Epinephrine 1 mg IV / IO<span class="detail">Repeat every 3–5 minutes per supplied protocol.</span></span><span class="time" id="t10">TAP</span></button>
+    <div class="repeat">
+      <button type="button" onclick="epiTap()">+ REPEAT EPI 1 mg</button>
+      <button type="button" onclick="logEvent('CPR continued / reassessment')">CPR / REASSESS</button>
+    </div>
+    <div class="timer" id="epiTimer">No epinephrine dose logged.</div>
+  </div>
+</section>
+
+<div class="logbox">
+  <div class="loghead"><h2>Timestamp Log</h2><div class="smallbtns"><button type="button" onclick="undoLast()">Undo</button><button type="button" onclick="copyLog()">Copy</button></div></div>
+  <ul id="log"></ul>
+</div>
+
+<div class="note">Timestamp/reference aid only. Verify all treatment decisions, medications, scope, and current agency protocol/medical direction.</div>
+</div>
+
+<script>
+const KEY='aemt-arrest-offline-v1';
+let data;
+try{data=JSON.parse(localStorage.getItem(KEY))||{start:null,steps:{},events:[],lastEpi:null,epiCount:0}}catch(e){data={start:null,steps:{},events:[],lastEpi:null,epiCount:0}}
+const pad=n=>String(n).padStart(2,'0');
+function timeStr(ms){const d=new Date(ms);return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`}
+function elapsedStr(ms){if(!data.start)return'00:00';let s=Math.max(0,Math.floor((ms-data.start)/1000)),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),x=s%60;return h?`${pad(h)}:${pad(m)}:${pad(x)}`:`${pad(m)}:${pad(x)}`}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}}
+function ensureStart(){if(!data.start){data.start=Date.now();data.events.push({t:data.start,e:'Arrest timer started'})}}
+function startTimer(){if(!data.start){data.start=Date.now();data.events.push({t:data.start,e:'Arrest timer started'});save();render()}else logEvent('Timer continued')}
+function stepTap(n,label){ensureStart();const now=Date.now();if(!data.steps[n])data.steps[n]=now;data.events.push({t:now,e:label});save();render()}
+function epiTap(){ensureStart();const now=Date.now();data.epiCount=(data.epiCount||0)+1;data.lastEpi=now;if(!data.steps[10])data.steps[10]=now;data.events.push({t:now,e:`Epinephrine 1 mg IV/IO — dose #${data.epiCount}`});save();render()}
+function logEvent(label){ensureStart();data.events.push({t:Date.now(),e:label});save();render()}
+function undoLast(){if(!data.events.length)return;const x=data.events.pop();if(x.e.startsWith('Epinephrine'))data.epiCount=Math.max(0,(data.epiCount||0)-1);save();render()}
+function resetAll(){if(!confirm('Clear all timestamps for this arrest?'))return;data={start:null,steps:{},events:[],lastEpi:null,epiCount:0};save();render()}
+function deleteEvent(i){data.events.splice(i,1);save();render()}
+function esc(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function render(){
+  for(let i=1;i<=10;i++){const b=document.getElementById('s'+i),t=document.getElementById('t'+i),ts=data.steps[i];if(ts){b.classList.add('done');t.textContent=timeStr(ts)}else{b.classList.remove('done');t.textContent='TAP'}}
+  const ul=document.getElementById('log');
+  if(!data.events.length){ul.innerHTML='<li class="empty">No timestamps yet.</li>';return}
+  ul.innerHTML=[...data.events].reverse().map((x,ri)=>{const idx=data.events.length-1-ri;return `<li><span class="et">${timeStr(x.t)}</span><span class="el">+${elapsedStr(x.t)}</span><span class="ev">${esc(x.e)}</span><button class="del" type="button" onclick="deleteEvent(${idx})">×</button></li>`}).join('')
+}
+function update(){
+  const now=Date.now();document.getElementById('clock').textContent=timeStr(now);document.getElementById('elapsed').textContent=elapsedStr(now);
+  const box=document.getElementById('epiTimer');
+  if(!data.lastEpi){box.textContent='No epinephrine dose logged.'}
+  else{const s=Math.floor((now-data.lastEpi)/1000);if(s<180){const r=180-s;box.innerHTML=`Last epi: <strong>${timeStr(data.lastEpi)}</strong> • 3-min point in <strong>${Math.floor(r/60)}:${pad(r%60)}</strong>`}else if(s<=300){box.innerHTML=`Last epi: <strong>${timeStr(data.lastEpi)}</strong> • 3–5 min repeat window OPEN • <strong>${Math.floor(s/60)}:${pad(s%60)}</strong> elapsed`}else{box.innerHTML=`Last epi: <strong>${timeStr(data.lastEpi)}</strong> • over 5 min • <strong>${Math.floor(s/60)}:${pad(s%60)}</strong>`}}
+}
+async function copyLog(){let s='AEMT CARDIAC ARREST TIMESTAMP LOG\\n';data.events.forEach(x=>s+=`${timeStr(x.t)} (+${elapsedStr(x.t)}) ${x.e}\\n`);try{await navigator.clipboard.writeText(s);alert('Log copied')}catch(e){prompt('Copy log:',s)}}
+function networkStatus(){const el=document.getElementById('offlineStatus');if(navigator.onLine){el.textContent='Online now • app is designed to keep working offline';el.className='offline ok'}else{el.textContent='OFFLINE • app is running without internet';el.className='offline ok'}}
+window.addEventListener('online',networkStatus);window.addEventListener('offline',networkStatus);
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
+render();update();networkStatus();setInterval(update,250);
+</script>
+</body></html>
